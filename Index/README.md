@@ -66,3 +66,15 @@ BLOB and TEXT columns also can be indexed, `but a prefix length must be given`. 
 
 
 https://www.jianshu.com/p/bd9154df8bf0 用explain进行优化的过程
+
+
+
+记得看：
+
+[MySql数据库之索引优化](http://luckylau.tech/2018/05/01/MySql%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B9%8B%E7%B4%A2%E5%BC%95%E4%BC%98%E5%8C%96/)
+
+[MySQL索引原理以及查询优化](https://www.cnblogs.com/bypp/p/7755307.html)
+
+ Mysql聚集索引和非聚集索引(堆组织表和索引组织表)
+
+https://blog.csdn.net/ochangwen/article/details/53997366

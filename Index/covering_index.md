@@ -52,3 +52,9 @@ explain图
 来源：简书
 
 简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。
+
+https://www.jianshu.com/p/f6e4091be10e
+
+
+
+[mysql高效索引之覆盖索引](https://www.cnblogs.com/chenpingzhao/p/4776981.html)

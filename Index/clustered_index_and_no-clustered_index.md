@@ -16,7 +16,7 @@ A nonclustered index is a special type of index in which the logical order of th
 
 **非聚集索引和聚集索引的区别** 在于， 通过聚集索引可以查到需要查找的数据， 而通过非聚集索引可以查到记录对应的主键值 ， 再使用主键的值通过聚集索引查找到需要的数据 
 
-**不管以任何方式查询表， 最终都会利用主键通过聚集索引来定位到数据， 聚集索引（主键）是通往真实数据所在的唯一路径。**
+**以InnoDB为例子，非聚集索引 最终都会利用主键通过聚集索引来定位到数据**
 
 ```mermaid
 graph TD
@@ -44,9 +44,9 @@ end
 
 ## 主键和聚集索引的关系
 
-聚集索引并不一定是主键，也不一定是唯一索引。
+聚集索引并不一定是主键，也不一定是唯一索引。它和数据库的引擎相关，数据库引擎设计的不同，带来不同。
 
-通常，我们会在每个表中都建立一个自增的ID列区分每条数据。此时，如果我们将这个列设为主键，SQL SERVER会将此列默认为聚集索引。这样数据在数据库中会按照ID进行物理排序。  
+通常，每个表中会建立自增的ID列区分每条数据。如果将这个列设为主键，SQL SERVER会将此列默认为聚集索引。数据在数据库中会按照ID进行物理排序。  
 
 ## 有效利用聚集索引          
 
@@ -88,9 +88,37 @@ select [语句执行花费时间(毫秒)]=datediff(ms,@d,getdate())
 
 （4）聚集索引应该避免建立在数值单调的列上，否则可能会造成IO的竞争，以及B树的不平衡，从而导致数据库系统频繁的维护B树的平衡性。聚集索引的列值最好能够在表中均匀分布。
 
+
+
+## InnoDB 引擎下的设计
+
+#### 15.6.2.1 Clustered and Secondary Indexes
+
+Every `InnoDB` table has a special index called the [clustered index](https://dev.mysql.com/doc/refman/8.0/en/glossary.html#glos_clustered_index) where the data for the rows is stored. Typically, the clustered index is synonymous with the [primary key](https://dev.mysql.com/doc/refman/8.0/en/glossary.html#glos_primary_key). To get the best performance from queries, inserts, and other database operations, you must understand how `InnoDB` uses the clustered index to optimize the most common lookup and DML operations for each table.
+
+- When you define a `PRIMARY KEY` on your table, `InnoDB` uses it as the clustered index. Define a primary key for each table that you create. If there is no logical unique and non-null column or set of columns, add a new [auto-increment](https://dev.mysql.com/doc/refman/8.0/en/glossary.html#glos_auto_increment) column, whose values are filled in automatically.
+- If you do not define a `PRIMARY KEY` for your table, MySQL locates the first `UNIQUE` index where all the key columns are `NOT NULL` and `InnoDB`uses it as the clustered index.
+- If the table has no `PRIMARY KEY` or suitable `UNIQUE` index, `InnoDB` internally generates a hidden clustered index named `GEN_CLUST_INDEX` on a synthetic column containing row ID values. The rows are ordered by the ID that `InnoDB` assigns to the rows in such a table. The row ID is a 6-byte field that increases monotonically as new rows are inserted. Thus, the rows ordered by the row ID are physically in insertion order.
+
+##### How the Clustered Index Speeds Up Queries
+
+Accessing a row through the clustered index is fast because the index search leads directly to the page with all the row data. If a table is large, the clustered index architecture often saves a disk I/O operation when compared to storage organizations that store row data using a different page from the index record.
+
+##### How Secondary Indexes Relate to the Clustered Index
+
+All indexes other than the clustered index are known as [secondary indexes](https://dev.mysql.com/doc/refman/8.0/en/glossary.html#glos_secondary_index). In `InnoDB`, each record in a secondary index contains the primary key columns for the row, as well as the columns specified for the secondary index. `InnoDB` uses this primary key value to search for the row in the clustered index.
+
+If the primary key is long, the secondary indexes use more space, so it is advantageous to have a short primary key.
+
+For guidelines to take advantage of `InnoDB` clustered and secondary indexes, see [Section 8.3, “Optimization and Indexes”](https://dev.mysql.com/doc/refman/8.0/en/optimization-indexes.html).
+
+from https://dev.mysql.com/doc/refman/8.0/en/innodb-index-types.html
+
 ## 参考：
 
-https://blog.csdn.net/HkEndless/article/details/39177617
-
 https://blog.csdn.net/ak913/article/details/8026743 文中对聚集和非聚集进行了分析
+
+https://www.jianshu.com/p/f6e4091be10e 比较清晰地说明了聚集索引，覆盖索引，覆盖索引的概念，但是整个是基于innoDB 的分析，但是作者没有点出来。
+
+[Mysql聚集索引和非聚集索引(堆组织表和索引组织表)](https://blog.csdn.net/ochangwen/article/details/53997366)
 
